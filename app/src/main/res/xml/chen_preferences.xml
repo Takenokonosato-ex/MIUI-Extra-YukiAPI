@@ -241,7 +241,11 @@
             app:summary="Art_Chen" />
         <Preference
             app:title="@string/coolapk_title"
-            app:summary="\@Art_Chen" />
+            app:summary="\@Art_Chen" >
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="coolmarket://www.coolapk.com/u/589789"/>
+        </Preference>
         <Preference
             app:title="@string/weibo_title"
             app:summary="\@Art_Chen琛琛" >
