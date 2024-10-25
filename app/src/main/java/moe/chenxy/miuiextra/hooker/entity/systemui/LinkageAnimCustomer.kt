@@ -20,33 +20,6 @@ import java.util.Objects
 object LinkageAnimCustomer : YukiBaseHooker() {
 
     override fun onHook() {
-//        "com.android.systemui.shade.MiuiNotificationPanelViewController".toClass().apply {
-//            method {
-//                name = "linkageViewAnim"
-//                param(BooleanType)
-//            }.hook {
-//                before {
-//                    MiWallpaperHook.mainPrefs.reload()
-//                    val on = MiWallpaperHook.mainPrefs.getInt("screen_on_color_fade_anim_val", 800)
-//                    val off = MiWallpaperHook.mainPrefs.getInt("screen_off_color_fade_anim_val", 450)
-//                    val blackHideEase = XposedHelpers.getObjectField(this.instance, "blackHideEase")
-//
-//
-//                    XposedHelpers.callMethod(blackHideEase, "setDuration", off.toLong())
-//                }
-//            }
-//        }
-        var mWallpaperService: Service? = null
-        "com.android.keyguard.wallpaper.MiuiKeyguardWallPaperManager".toClass().apply {
-            method {
-                name = "initKeyguardWallpaperManager"
-            }.hook {
-                after {
-                    mWallpaperService = XposedHelpers.getObjectField(XposedHelpers.getObjectField(this.instance, "mMiuiWallpaperManager"), "mService") as Service
-                }
-            }
-        }
-
         "com.android.keyguard.clock.animation.ClockBaseAnimation".toClass().apply {
             var listener: Any? = null
             var toAodListener: Any? = null
@@ -119,25 +92,6 @@ object LinkageAnimCustomer : YukiBaseHooker() {
                     }
                     XposedHelpers.callMethod(this.instance, "doAnimationToAod", toAod, hasNotification)
                 }
-                // hide when time alpha 0
-//                method {
-//                    name = "updateTimeViewAlpha"
-//                    param(FloatType)
-//                }.hook {
-//                    after {
-//                        val chenAnimLinkage = MiWallpaperHook.mainPrefs.getBoolean("lineage_aod_chen_wallpaper_anim", false)
-//                        if (chenAnimLinkage && this.args[0] as Float == 0f && listener != null) {
-//                            val mWallpaperHideEase =
-//                                XposedHelpers.getObjectField(this.instance, "mWallpaperHideEase")
-//                            XposedHelpers.callMethod(mWallpaperHideEase, "setDuration", 1000L)
-//
-//                            val stateStyle = XposedHelpers.callStaticMethod("miuix.animation.Folme".toClass(), "useValue", arrayOf("WallpaperParam"))
-//                            XposedHelpers.callMethod(toAodAnimConfig, "setEase", mWallpaperHideEase)
-//
-//                            XposedHelpers.callMethod(stateStyle, "to", arrayOf("wallpaperBlack", 1f, toAodAnimConfig))
-//                        }
-//                    }
-//                }
             }
         }
     }
