@@ -265,5 +265,11 @@
         <rikka.material.preference.MaterialSwitchPreference
             app:key="hide_app_icon"
             app:title="@string/hide_app_icon_title" />
+        <Preference
+            app:key="backup_config"
+            app:title="@string/backup" />
+        <Preference
+            app:key="restore_config"
+            app:title="@string/restore" />
     </PreferenceCategory>
 </PreferenceScreen>

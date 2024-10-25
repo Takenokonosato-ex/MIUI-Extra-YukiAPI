@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.graphics.Color
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -16,6 +17,9 @@ import android.view.LayoutInflater
 import android.view.WindowManager
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.WindowCompat
@@ -29,6 +33,7 @@ import androidx.preference.size
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import moe.chenxy.miuiextra.R
+import moe.chenxy.miuiextra.utils.BackupUtil
 import moe.chenxy.miuiextra.utils.ChenUtils
 
 const val SHELL_RESTART_MIUI_HOME = "am force-stop com.miui.home"
@@ -95,6 +100,10 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     class SettingsFragment : PreferenceFragmentCompat() {
+        private lateinit var backupLauncher: ActivityResultLauncher<String>
+        private lateinit var restoreLauncher: ActivityResultLauncher<Array<String>>
+        private lateinit var restoreItems: List<String>
+
         private fun setActivateStatus(isActivated: Boolean, preference: Preference) {
             if (!isActivated) {
                 preference.title = resources.getString(R.string.deactivated)
@@ -247,6 +256,38 @@ class SettingsActivity : AppCompatActivity() {
             }
 
             bindAnimationSeekBarNoEditText(findPreference("blur_scale_val"), 1)
+
+            findPreference<Preference>("backup_config")?.setOnPreferenceClickListener { _ ->
+                backupConfig()
+                return@setOnPreferenceClickListener true
+            }
+            findPreference<Preference>("restore_config")?.setOnPreferenceClickListener { _ ->
+                restoreConfig()
+                return@setOnPreferenceClickListener true
+            }
+
+            if (!this::backupLauncher.isInitialized) {
+                backupLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri: Uri? ->
+                    if (uri != null) {
+                        BackupUtil.triggerBackupFile(uri, requireContext())
+                    } else {
+                        Toast.makeText(requireContext(), R.string.backup_failed, Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                restoreLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+                    if (uri != null) {
+                        BackupUtil.triggerRestoreFile(uri, requireContext(), restoreItems)
+                        Intent(requireContext(), SettingsActivity::class.java).also {
+                            it.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            requireActivity().finish()
+                            requireContext().startActivity(it)
+                        }
+                    } else {
+                        Toast.makeText(requireContext(), R.string.restore_failed, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
         }
 
         private val setColorFadeSettings : Runnable = Runnable {
@@ -370,6 +411,37 @@ class SettingsActivity : AppCompatActivity() {
                     .show()
                 return@setOnPreferenceChangeListener true
             }
+        }
+
+        private fun backupConfig() {
+            backupLauncher.launch("HyperExtra_configs_${System.currentTimeMillis()}.json")
+        }
+
+        private fun restoreConfig() {
+            val context = requireContext()
+            val restoreSelect = arrayOfNulls<Boolean>(4)
+
+            val builder = AlertDialog.Builder(context).let {
+                it.setTitle(R.string.restore)
+                it.setMultiChoiceItems(R.array.restore_entries, null) { dialog, witch, b ->
+                    restoreSelect[witch] = b
+                }
+                it.setPositiveButton(R.string.confirm) { dialog, witch ->
+                    val nameList = mutableListOf<String>()
+                    for (i in 0..restoreSelect.size - 1) {
+                        if (restoreSelect[i] == true) {
+                            nameList.add(BackupUtil.allPrefName[i])
+                        }
+                    }
+                    restoreItems = nameList
+                    restoreLauncher.launch(arrayOf<String>("application/json"))
+                }
+                it.setNegativeButton(R.string.cancel) { dialog, witch ->
+                    // nothing
+                }
+            }
+
+            builder.show()
         }
     }
 

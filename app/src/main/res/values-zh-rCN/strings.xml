@@ -138,4 +138,13 @@
     <string name="wallpaper_black_alpha_title">壁纸压暗程度</string>
     <string name="home_handle_offset_x_title">X轴偏移</string>
     <string name="home_handle_offset_y_title">Y轴偏移</string>
+
+
+    <string name="backup">备份配置</string>
+    <string name="backup_failed">备份配置失败!</string>
+    <string name="backup_success">备份配置成功!</string>
+    <string name="restore">恢复配置</string>
+    <string name="restore_failed">恢复配置失败!</string>
+    <string name="restore_success">恢复配置成功!</string>
+    <string name="main_settings">主要设置</string>
 </resources>

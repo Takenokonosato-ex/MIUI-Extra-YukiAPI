@@ -140,4 +140,11 @@
     <string name="wallpaper_black_alpha_title">Wallpaper Darkness</string>
     <string name="home_handle_offset_x_title">Offset X</string>
     <string name="home_handle_offset_y_title">Offset Y</string>
+    <string name="backup">Backup Configs</string>
+    <string name="backup_failed">Backup Configs Failed!</string>
+    <string name="backup_success">Backup Configs Success!</string>
+    <string name="restore">Restore Configs</string>
+    <string name="restore_failed">Restore Configs Failed!</string>
+    <string name="restore_success">Restore Configs Success!</string>
+    <string name="main_settings">Main Settings</string>
 </resources>
