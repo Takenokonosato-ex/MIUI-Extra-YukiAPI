@@ -2,27 +2,13 @@
     <style name="Theme.MiuiExtra" parent="Theme.MiuiExtra.Dark" />
     <!-- Base application theme. -->
     <style name="Theme.MiuiExtra.Dark" parent="Theme.Material3.DynamicColors.Dark.Rikka">
-        <!--        &lt;!&ndash; Primary brand color. &ndash;&gt;-->
-        <!--        <item name="colorPrimary">#edbdc5</item>-->
-        <!--        <item name="colorPrimaryVariant">#edbdc5</item>-->
-        <!--        <item name="colorOnPrimary">#edbde5</item>-->
-        <!--        &lt;!&ndash; Secondary brand color. &ndash;&gt;-->
-        <!--        <item name="colorSecondary">#edbdc5</item>-->
-        <!--        <item name="colorSecondaryVariant">#edbde5</item>-->
-        <!--        <item name="colorOnSecondary">#edbde5</item>-->
-        <!-- Status bar color. -->
-        <!--        <item name="android:statusBarColor" >?attr/colorPrimaryVariant</item>-->
+        <item name="colorPrimaryVariant">@color/material_grey_300</item>
         <item name="android:statusBarColor">?android:colorBackground</item>
-        <!-- Customize your theme here. -->
-        <item name="android:windowTranslucentNavigation">true</item>
         <item name="android:windowTranslucentStatus">true</item>
-        <item name="android:fitsSystemWindows">true</item>
-<!--        <item name="android:windowLightStatusBar">true</item>-->
-        <!-- Preference title -->
+        <item name="android:windowTranslucentNavigation">false</item>
+        <item name="android:windowLightStatusBar">true</item>
         <item name="android:textAppearanceListItem">?textAppearanceSubtitle1</item>
-        <!-- Preference category title -->
         <item name="android:colorAccent">?colorPrimary</item>
-        <!-- Preference switch -->
         <item name="android:colorControlActivated">?colorPrimary</item>
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
@@ -30,6 +16,9 @@
         <item name="windowNoTitle">true</item>
         <!-- Extend this style if you have other custom preferences -->
         <item name="preferenceTheme">@style/PreferenceThemeOverlay.Rikka.Material3</item>
+
+        <item name="android:ambientShadowAlpha">@dimen/ambient_shadow_alpha</item>
+        <item name="android:spotShadowAlpha">@dimen/spot_shadow_alpha</item>
     </style>
 
     <!-- SubtitleCollapsingToolbarLayout styles -->
