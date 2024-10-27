@@ -26,6 +26,11 @@ object SystemUIPluginHook : YukiBaseHooker() {
                 loadPluginHooker(ChenVolumePanelAnimator)
             }
 
+            // Optimize the fucking dim on Power Option.
+            // Someone says its 'by design'. WHAT A FUCKING 'BY DESIGN'! IT'S A BUG!
+            // Load this hooker without toggle, everyone needed this!
+            loadPluginHooker(GlobalActionOptimizer)
+
             loadPluginHooker(StatusBarBlurUtilsHooker.ControlCenterWindowViewHooker)
         }
 
