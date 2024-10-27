@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.io.*
 
 plugins {
     alias(libs.plugins.agp.app)
@@ -15,6 +16,33 @@ apksign {
     keyPasswordProperty = "KEY_PASSWORD"
 }
 
+val getGitCommitCount: () -> Int = {
+    val output = ByteArrayOutputStream()
+    ProcessBuilder("git", "rev-list", "--count", "HEAD").start().apply {
+        inputStream.copyTo(output)
+        waitFor()
+    }
+    output.toString().trim().toInt()
+}
+
+val getVersionCode: () -> Int = {
+    val commitCount = getGitCommitCount()
+    val major = 5
+    major + commitCount
+}
+
+fun getGitHash(): String {
+    val process = ProcessBuilder("git", "rev-parse", "--short", "HEAD").start()
+    val output = process.inputStream.bufferedReader().use { it.readText().trim() }
+    return output
+}
+
+fun getGitHashLong(): String {
+    val process = ProcessBuilder("git", "rev-parse", "HEAD").start()
+    val output = process.inputStream.bufferedReader().use { it.readText().trim() }
+    return output
+}
+
 android {
     compileSdk = 35
 
@@ -26,25 +54,34 @@ android {
         versionName = "2.7.0-U-HyperOS"
     }
 
+    val gitCode = getVersionCode()
+    val gitHash = getGitHash()
     buildTypes {
         debug {
             isDebuggable = true
             isMinifyEnabled = false
             isShrinkResources = false
+            buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
+            buildConfigField("String", "GIT_CODE", "\"$gitCode\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+
+            versionNameSuffix = "_${gitHash}_r${gitCode}"
         }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             isDebuggable = false
             multiDexEnabled = true
+            buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
+            buildConfigField("String", "GIT_CODE", "\"$gitCode\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            versionNameSuffix = "_${gitHash}_r${gitCode}"
         }
     }
 
