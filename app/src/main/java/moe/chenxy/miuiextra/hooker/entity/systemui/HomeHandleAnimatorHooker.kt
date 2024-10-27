@@ -676,7 +676,7 @@ object HomeHandleAnimatorHooker : YukiBaseHooker() {
                         ) && orientationFor == 0
                     ) {
                         inset = if (isAboveU) {
-                            Insets.of(inset.left, 0, inset.right, 0)
+                            Insets.of(inset.left, 0, inset.right, 1)
                         } else {
                             Insets.of(inset.left, lp.height, inset.right, 0)
                         }
@@ -782,25 +782,22 @@ object HomeHandleAnimatorHooker : YukiBaseHooker() {
             }
         }
 
-        if (mainPrefs.getBoolean("home_handle_wa_no_space_not_hide", false)) {
-            // Workaround immersive mode can not hide the handle
-            "com.android.systemui.navigationbar.NavigationBar".toClass().method {
-                name("setWindowState")
-                param(IntType, IntType, IntType)
-            }.hook {
-                after {
-                    isHidden = XposedHelpers.getBooleanField(
-                        this.instance,
-                        "mShowOrientedHandleForImmersiveMode"
-                    )
-                    if (lastIsHidden == isHidden) return@after
+        if (mainPrefs.getBoolean("chen_home_handle_no_space", false)) {
+            val statusBarCls = "com.android.systemui.statusbar.phone.PhoneStatusBarTransitions".toClass()
+            "com.android.systemui.statusbar.phone.BarTransitions".toClass().apply {
+                method {
+                    name = "applyModeBackground"
+                    paramCount = 2
+                }.hook {
+                    before {
+                        // ignored status bar transition
+                        if (statusBarCls.isInstance(this.instance)) return@before
 
-                    if (isHidden) {
-                        opacityTo(0f, 300)
-                    } else {
-                        opacityHomeHandle(EventType.NORMAL)
+                        val mode = this.args[0]
+                        when (mode) {
+                            1, 2, 3, 4 -> this.args[0] = 0
+                        }
                     }
-                    lastIsHidden = isHidden
                 }
             }
         }
