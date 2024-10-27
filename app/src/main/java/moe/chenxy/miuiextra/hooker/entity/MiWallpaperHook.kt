@@ -27,6 +27,7 @@ import moe.chenxy.miuiextra.hooker.entity.MiWallpaperHook.ChenAnimationNew.onScr
 import moe.chenxy.miuiextra.hooker.entity.MiWallpaperHook.ChenAnimationNew.onUserPresent
 import moe.chenxy.miuiextra.hooker.entity.MiWallpaperHook.ChenAnimationNew.startScaleAnim
 import java.lang.reflect.Method
+import kotlin.random.Random
 
 
 object MiWallpaperHook : YukiBaseHooker() {
@@ -41,20 +42,6 @@ object MiWallpaperHook : YukiBaseHooker() {
 
     override fun onHook() {
         var mIsShowingRevealBlack = false
-        var mClassName = ""
-        var lastToAod = false
-
-        fun onAodWallpaperAnimTriggered(toAod: Boolean) {
-            if (mWSC == null) return
-
-//            mToAod = toAod
-//            triggeredByAod = true
-//            XposedHelpers.callMethod(mWSC, "showWallpaperScreenOnAnim", !mToAod)
-            if (toAod == lastToAod) return
-            startScaleAnim(!toAod)
-            Log.i("Art_Chen", "onAodWallpaperAnimTriggered toAod $toAod")
-            lastToAod = toAod
-        }
 
         if (mUseChenScreenOnAnim) {
             loadHooker(ChenAnimationNew)
@@ -71,7 +58,7 @@ object MiWallpaperHook : YukiBaseHooker() {
                                 override fun onReceive(p0: Context?, p1: Intent?) {
                                     p1?.let {
                                         val toAod = it.getBooleanExtra("toAod", false)
-                                        onAodWallpaperAnimTriggered(toAod)
+                                        ChenAnimationNew.onAodWallpaperAnimTriggered(toAod)
                                     }
                                 }
                             },
@@ -249,79 +236,39 @@ object MiWallpaperHook : YukiBaseHooker() {
                 }
             }
         }
-
-//        "com.miui.miwallpaper.wallpaperservice.impl.desktop.DesktopImageEngineImpl".hook {
-//            injectMember {
-//                method {
-//                    name = "lambda\$hideKeyguardWallpaper$11\$DesktopImageEngineImpl"
-//                }
-//                beforeHook {
-//                    this.result = null
-//                }
-//            }.ignoredAllFailure()
-//
-//            injectMember {
-//                method {
-//                    name = "lambda\$hideKeyguardWallpaper$3\$DesktopImageEngineImpl"
-//                }
-//                beforeHook {
-//                    this.result = null
-//                }
-//            }.ignoredAllFailure()
-//
-//            injectMember {
-//                method {
-//                    name = "onScreenTurningOff"
-//                }
-//                beforeHook {
-//                    val mDesktopWallpaperRenderer = XposedHelpers.getObjectField(
-//                        this.instance,
-//                        "mDesktopWallpaperRenderer"
-//                    )
-//                    XposedHelpers.callMethod(
-//                        mDesktopWallpaperRenderer,
-//                        "startRevealAnim",
-//                        false
-//                    )
-//                }
-//            }
-//
-//            injectMember {
-//                method {
-//                    name = "lambda\$onScreenTurningOn$1\$DesktopImageEngineImpl"
-//                }
-//                beforeHook {
-//                    if (mIsShowingRevealBlack && mUseChenScreenOnAnim) {
-//                        val mDesktopWallpaperRenderer =
-//                            XposedHelpers.getObjectField(this.instance, "mDesktopWallpaperRenderer")
-//                        XposedHelpers.callMethod(mDesktopWallpaperRenderer, "startRevealAnim", true)
-//                        this.result = null
-//                    }
-//                }
-//            }
-//
-//        }
-
-//        if (mainPrefs.getBoolean("use_chen_screen_on_anim", false)) {
-//            loadHooker(ChenAnimation)
-//        }
-
-//        "com.miui.miwallpaper.manager.WallpaperServiceController".hook {
-//            injectMember {
-//                method {
-//                    name = "needDesktopDoRevealAnim"
-//                }
-//                replaceTo(true)
-//            }
-//        }
     }
 
     object ChenAnimationNew : YukiBaseHooker() {
         private var isSameImage = true
         private var handler: Handler? = null
+        private var lastToAod = false
+        private var scalePerMin: Runnable = Runnable {
+            val random = Random.nextFloat() / 10
+            val target = if (mScaleValue > 0.7f) mScaleValue - random else mScaleValue + random
+            Log.d("Art_Chen", "scalePerMin trigger. $target")
+            startScaleAnim(target, 2000)
+            handler?.postDelayed(scalePerMin, 1 * 60000)
+        }
+
+        fun onAodWallpaperAnimTriggered(toAod: Boolean) {
+            if (mWSC == null) return
+
+            if (toAod == lastToAod) return
+
+            if (toAod) {
+                handler?.postDelayed(scalePerMin, 1 * 6000)
+            } else {
+                handler?.removeCallbacks(scalePerMin)
+            }
+
+            startScaleAnim(!toAod)
+            Log.i("Art_Chen", "onAodWallpaperAnimTriggered toAod $toAod")
+            lastToAod = toAod
+        }
 
 
         fun onUserPresent() {
+            handler?.removeCallbacks(scalePerMin)
             handler?.post {
                 if (isSameImage) {
                     scaleAnimator!!.cancel()
@@ -335,9 +282,10 @@ object MiWallpaperHook : YukiBaseHooker() {
         }
 
         fun onScreenOff() {
+            handler?.removeCallbacks(scalePerMin)
             handler?.post {
                 scaleAnimator!!.setFloatValues(mScaleValue, 0.5f)
-                scaleAnimator!!.duration = 300
+                scaleAnimator!!.duration = 1000
                 scaleAnimator!!.start()
             }
         }
@@ -361,6 +309,20 @@ object MiWallpaperHook : YukiBaseHooker() {
             scaleAnimator!!.start()
         }
 
+        fun startScaleAnim(to: Float, duration: Long) {
+            if (scaleAnimator == null) {
+                Log.e("Art_Chen", "Scale Anim is not init!")
+                return
+            }
+
+            if (scaleAnimator!!.isRunning) scaleAnimator!!.cancel()
+
+
+            scaleAnimator!!.setFloatValues(mScaleValue, to)
+            scaleAnimator!!.duration = duration
+            scaleAnimator!!.start()
+        }
+
         override fun onHook() {
             var desktopCls: Class<*>? = "com.miui.miwallpaper.container.openGL.DesktopAnimImageWallpaperRenderer".toClass()
             "com.miui.miwallpaper.opengl.AnimImageWallpaperRenderer".toClass().apply {
@@ -368,12 +330,6 @@ object MiWallpaperHook : YukiBaseHooker() {
                     param(ContextClass)
                 }.hook {
                     after {
-//                        cls =
-//                            if (XposedHelpers.callMethod(mWSC, "isSameImageWallpaper") as Boolean)
-//                                "com.miui.miwallpaper.container.openGL.DesktopAnimImageWallpaperRenderer".toClass()
-//                            else
-//                                "com.miui.miwallpaper.container.openGL.KeyguardAnimImageWallpaperRenderer".toClass()
-
                         if (scaleAnimator == null) {
                             handler = Handler(Looper.getMainLooper())
                             scaleAnimator = ValueAnimator()
@@ -382,7 +338,6 @@ object MiWallpaperHook : YukiBaseHooker() {
                                 mScaleValue = it.animatedValue as Float
                             }
 
-//                            scaleAnimator!!.duration = 1200
                             scaleAnimator!!.interpolator = PathInterpolator(0.23f, 0.6f, 0.38f, 1f)
                         }
                         scaleAnimator!!.addUpdateListener {
@@ -447,134 +402,4 @@ object MiWallpaperHook : YukiBaseHooker() {
             }
         }
     }
-
-//    object ChenAnimation : YukiBaseHooker() {
-//        var uBlurRadius = -1
-//        var uBlurOffset = -1
-//        var uSumWeight = -1
-//        var uAlpha = -1
-//        var mScaleValue = 0f
-//        var mFragmentShaderId: Int = -1
-//        override fun onHook() {
-//            "com.android.systemui.glwallpaper.ImageWallpaperRenderer".hook {
-//                injectMember {
-//                    method {
-//                        name = "setGLViewport"
-//                    }
-//                    beforeHook {
-//                        val mRevealValue = XposedHelpers.getFloatField(
-//                            this.instance,
-//                            "mRevealValue"
-//                        )
-//                        if (mScaleValue != 0f && mRevealValue != 0f) {
-//                            Log.v(
-//                                "Art_Chen",
-//                                "need animation!! override setGLViewport! this class = ${this.instance.javaClass}"
-//                            )
-//                            val mSurfaceSize =
-//                                XposedHelpers.getObjectField(
-//                                    this.instance,
-//                                    "mSurfaceSize"
-//                                ) as Rect
-//                            val f2 = ((1.0f - mRevealValue) * 1.0f) + (mRevealValue * 1.2f)
-//                            val f3 = (1.0f - f2) / 2.0f
-//                            val width = mSurfaceSize.width()
-//                            val height = mSurfaceSize.height()
-//                            Log.v(
-//                                "Art_Chen",
-//                                "mRevealValue $mRevealValue, mScaleValue $mScaleValue"
-//                            )
-//                            GLES20.glViewport(
-//                                ((mSurfaceSize.left + (width * f3)).toInt()),
-//                                ((mSurfaceSize.top + (f3 * height)).toInt()),
-//                                ((width * f2).toInt()),
-//                                ((height * f2).toInt())
-//                            )
-//                            this.result = null
-//                        }
-//                    }
-//                }
-//
-//                injectMember {
-//                    method {
-//                        name = "onSurfaceCreated"
-//                    }
-//                    beforeHook {
-//                        mFragmentShaderId =
-//                            XposedHelpers.callMethod(this.instance, "getFragmentShader") as Int
-//                        Log.d("Art_Chen", "got fragment shader res id!!")
-//                    }
-//                }
-//            }
-//
-//            "com.miui.miwallpaper.container.openGL.AnimImageWallpaperRenderer".hook {
-//                injectMember {
-//                    method {
-//                        name = "lambda\$new$0\$AnimImageWallpaperRenderer"
-//                        param(ValueAnimatorClass)
-//                    }
-//                    beforeHook {
-//                        val valueAnimator = this.args[0] as ValueAnimator
-//                        mScaleValue = (valueAnimator.animatedValue as Float)
-//                    }
-//                }
-//            }
-//
-//            "com.android.systemui.glwallpaper.ImageGLProgram".hook {
-//                injectMember {
-//                    method {
-//                        name = "getShaderResource"
-//                        param(IntType)
-//                    }
-//                    beforeHook {
-//                        if (this.args[0] as Int == mFragmentShaderId) {
-//                            Log.i(
-//                                "Art_Chen",
-//                                "mFragmentShaderId detected, return chen Fragment Shader"
-//                            )
-//                            this.result = AnimFragmentShaderChen.glsl
-//                        }
-//                    }
-//                }
-//            }
-//
-//
-//            "com.miui.miwallpaper.container.openGL.DesktopAnimImageWallpaperRenderer".toClass().apply {
-//
-//                method {
-//                    name = "checkIsNeedCancelAnim"
-//                }.hook {
-//                    before {
-//                        val mRevealValue =
-//                            XposedHelpers.getFloatField(this.instance, "mRevealValue")
-//                        if (mUseChenScreenOnAnim && mRevealValue != 0f) {
-//                            this.result = true
-//                        }
-//                    }
-//                }
-//
-//                method {
-//                    name = "setGLViewport"
-//                }.hook {
-//                    before {
-//                        val mRevealValue =
-//                            field {
-//                                name = "mRevealValue"
-//                                superClass()
-//                            }.get(this.instance).any()
-//                        if (mUseChenScreenOnAnim && mRevealValue != 0f) {
-//                            // v1.9.0+ need set these to false to call the super method
-//                            field {
-//                                name("mWallpaperScaling")
-//                            }.get(this.instance).set(false)
-//
-//                            field {
-//                                name("mIsResetScale")
-//                            }.get(this.instance).set(false)
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
 }

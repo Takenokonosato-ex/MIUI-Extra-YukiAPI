@@ -94,5 +94,22 @@ object LinkageAnimCustomer : YukiBaseHooker() {
                 }
             }
         }
+
+        val chenAnimLinkage = MiWallpaperHook.mainPrefs.getBoolean("lineage_aod_chen_wallpaper_anim", false)
+        if (chenAnimLinkage) {
+            "com.android.keyguard.KeyguardUpdateMonitor".toClass().apply {
+                method {
+                    name = "updateScreenOffNeedLinKageAnimState"
+                }.hook {
+                    after {
+                        XposedHelpers.setBooleanField(
+                            this.instance,
+                            "mScreenOffNeedLinKageAnim",
+                            true
+                        )
+                    }
+                }
+            }
+        }
     }
 }

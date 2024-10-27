@@ -106,7 +106,8 @@ object SystemHooker : YukiBaseHooker() {
                         }
                         mContext.registerReceiver(
                             broadcastReceiver,
-                            IntentFilter("chen.miui.extra.update.colorfade")
+                            IntentFilter("chen.miui.extra.update.colorfade"),
+                            Context.RECEIVER_EXPORTED
                         )
                     }
                 }
@@ -123,6 +124,30 @@ object SystemHooker : YukiBaseHooker() {
                     // Skip if exit Anim is not null.
                     if (this.args[2] != 0 && this.args[3] != 0) {
                         this.result = null
+                    }
+                }
+            }
+        }
+
+        if (mainPrefs.getBoolean("lineage_aod_chen_wallpaper_anim", false)) {
+            "com.android.server.power.PowerManagerService".toClass().apply {
+                method {
+                    name = "readConfigurationLocked"
+                }.hook {
+                    after {
+                        XposedHelpers.callMethod(
+                            this.instance,
+                            "setDozeAfterScreenOffInternal",
+                            false
+                        )
+                    }
+                }
+
+                method {
+                    name = "setDozeAfterScreenOffInternal"
+                }.hook {
+                    before {
+                        this.args[0] = false
                     }
                 }
             }
