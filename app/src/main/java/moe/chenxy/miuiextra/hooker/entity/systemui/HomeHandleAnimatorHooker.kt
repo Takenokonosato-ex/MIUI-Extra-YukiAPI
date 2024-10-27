@@ -98,6 +98,7 @@ object HomeHandleAnimatorHooker : YukiBaseHooker() {
         var useMiBlur = mainPrefs.getBoolean("chen_home_handle_blur_effect", false)
         var mLightColor = -1
         var mDarkColor = -1
+        var orientation = 0
         var mNavigationHandle : Any? = null
         var isHidden = false
         var lastIsHidden = false
@@ -313,7 +314,7 @@ object HomeHandleAnimatorHooker : YukiBaseHooker() {
                 }
 
             if (useMiBlur) {
-                if (mHomeHandle.isSupportMiBlur() && mHomeHandle.getMiBackgroundBlurModeCompat() == 0) {
+                if (mHomeHandle.isSupportMiBlur() && mHomeHandle.getMiBackgroundBlurModeCompat() == 0 && orientation == 0) {
                     mHomeHandle.alpha = 1f
                     mHomeHandle.setMiBackgroundBlurModeCompat(1)
                     mHomeHandle.setMiViewBlurMode(2)
@@ -414,7 +415,6 @@ object HomeHandleAnimatorHooker : YukiBaseHooker() {
         var baseY = -1f
 
         val isBoostMode = mainPrefs.getBoolean("chen_home_handle_anim_turbo_mode", false)
-        var orientation = 0
         // Cache Screen Height. IPC is expensive
         var screenRealHeight: Int
         var screenHeight: Int
@@ -714,6 +714,11 @@ object HomeHandleAnimatorHooker : YukiBaseHooker() {
             }.hook {
                 before {
                     orientation = this.args[0] as Int
+                    val mode = if (orientation == 0) 1 else 0
+
+                    if (useMiBlur) {
+                        mHomeHandle.setMiBackgroundBlurModeCompat(mode)
+                    }
                 }
             }
         }
