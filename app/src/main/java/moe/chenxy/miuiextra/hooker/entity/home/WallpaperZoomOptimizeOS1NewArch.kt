@@ -1,6 +1,7 @@
 package moe.chenxy.miuiextra.hooker.entity.home
 
 import android.annotation.SuppressLint
+import android.view.Display
 import com.highcapable.yukihookapi.hook.entity.YukiBaseHooker
 import com.highcapable.yukihookapi.hook.factory.method
 import de.robv.android.xposed.XposedHelpers
@@ -116,6 +117,22 @@ object WallpaperZoomOptimizeOS1NewArch : YukiBaseHooker() {
                         }
                     }
 
+                }
+            }
+
+            method {
+                name = "onDisplayChange"
+            }.hook {
+                after {
+                    val displayState = XposedHelpers.getIntField(this.instance, "mOldDisplayState")
+                    if (displayState == Display.STATE_DOZE) {
+                        // reset
+                        mWallpaperElement?.apply {
+                            if (currentZoom < 1f) {
+                                XposedHelpers.callMethod(this, "updateElementProperty", 1f)
+                            }
+                        }
+                    }
                 }
             }
         }
