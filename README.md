@@ -45,5 +45,8 @@ This modules optimized or added some features as below:
 - [YukiHookAPI](https://github.com/fankes/YukiHookAPI) by fankes.
 - ❤ by All Users and @Art-Chen(https://github.com/Art-Chen)
 
+## Buy me a coffee
+https://afdian.com/a/art_chen
+
 ## The End
 Use code or make contribute is welcome! but Please **observe the licensing regulations** if you used code on your own project.
