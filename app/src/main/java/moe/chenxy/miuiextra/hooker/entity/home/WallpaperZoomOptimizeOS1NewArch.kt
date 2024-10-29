@@ -1,6 +1,7 @@
 package moe.chenxy.miuiextra.hooker.entity.home
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.view.Display
 import com.highcapable.yukihookapi.hook.entity.YukiBaseHooker
 import com.highcapable.yukihookapi.hook.factory.method

@@ -142,4 +142,6 @@
     <string name="restore_failed">Restore Configs Failed!</string>
     <string name="restore_success">Restore Configs Success!</string>
     <string name="main_settings">Main Settings</string>
+    <string name="optimize_global_action_title">Optimize Power UI</string>
+    <string name="optimize_global_action_summary">Optimize the blur background and animation</string>
 </resources>

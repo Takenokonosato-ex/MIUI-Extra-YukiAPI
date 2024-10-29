@@ -209,6 +209,16 @@ class SettingsActivity : AppCompatActivity() {
                 return@setOnPreferenceChangeListener true
             }
 
+            findPreference<SwitchPreferenceCompat>("optimize_global_action")?.setOnPreferenceChangeListener { _, _ ->
+                showRebootSnackBar(null, SHELL_RESTART_SYSTEMUI)
+                return@setOnPreferenceChangeListener true
+            }
+
+            findPreference<SwitchPreferenceCompat>("direct_aod_when_screen_off")?.setOnPreferenceChangeListener { _, _ ->
+                showRebootSnackBar(null, null)
+                return@setOnPreferenceChangeListener true
+            }
+
             findPreference<SwitchPreferenceCompat>("enable_home_text_shadow")?.setOnPreferenceChangeListener { _, _ ->
                 // MiuiHome use this feature toggle to inject hook when on load, Wallpaper app check this feature toggle on every call
                 showRebootSnackBar(null, SHELL_RESTART_MIUI_HOME)

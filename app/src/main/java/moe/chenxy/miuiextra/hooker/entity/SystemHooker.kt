@@ -129,7 +129,8 @@ object SystemHooker : YukiBaseHooker() {
             }
         }
 
-        if (mainPrefs.getBoolean("lineage_aod_chen_wallpaper_anim", false)) {
+        if (mainPrefs.getBoolean("override_linkage_wallpaper_anim", false)
+            && mainPrefs.getBoolean("lineage_aod_chen_wallpaper_anim", false)) {
             "com.android.server.power.PowerManagerService".toClass().apply {
                 method {
                     name = "readConfigurationLocked"

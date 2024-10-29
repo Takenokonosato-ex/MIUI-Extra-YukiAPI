@@ -147,4 +147,6 @@
     <string name="restore_failed">恢复配置失败!</string>
     <string name="restore_success">恢复配置成功!</string>
     <string name="main_settings">主要设置</string>
+    <string name="optimize_global_action_title">优化电源选项界面</string>
+    <string name="optimize_global_action_summary">优化模糊背景和进入/退出动画</string>
 </resources>

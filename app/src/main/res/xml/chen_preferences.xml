@@ -86,6 +86,11 @@
             app:defaultValue="0"
             app:summary="%s"
             app:entryValues="@array/volume_animation_effect_values" />
+
+        <rikka.material.preference.MaterialSwitchPreference
+            app:key="optimize_global_action"
+            app:title="@string/optimize_global_action_title"
+            app:summary="@string/optimize_global_action_summary"/>
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/wallpaper_header" app:key="wallpaper_settings">

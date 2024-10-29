@@ -28,8 +28,9 @@ object SystemUIPluginHook : YukiBaseHooker() {
 
             // Optimize the fucking dim on Power Option.
             // Someone says its 'by design'. WHAT A FUCKING 'BY DESIGN'! IT'S A BUG!
-            // Load this hooker without toggle, everyone needed this!
-            loadPluginHooker(GlobalActionOptimizer)
+            if (mainPrefs.getBoolean("optimize_global_action", false)) {
+                loadPluginHooker(GlobalActionOptimizer)
+            }
 
             loadPluginHooker(StatusBarBlurUtilsHooker.ControlCenterWindowViewHooker)
         }
