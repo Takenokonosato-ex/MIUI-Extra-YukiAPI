@@ -1,6 +1,7 @@
 package moe.chenxy.miuiextra.hooker.entity.systemui
 
 import android.content.Context
+import android.os.HandlerThread
 import android.os.Looper
 import android.util.Log
 import android.view.Choreographer
@@ -17,6 +18,7 @@ import java.lang.reflect.Proxy
 object ChenInputEventDispatcher {
     private val listeners = ArrayList<ChenInputEventListener>()
     private val isAboveU = ChenUtils.isAboveAndroidVersion(ChenUtils.Companion.AndroidVersion.U)
+    private val isAboveV = ChenUtils.isAboveAndroidVersion(ChenUtils.Companion.AndroidVersion.V)
     private var inited = false
     private var mInputEventReceiver: Any? = null
     private var mInputMonitor: Any? = null
@@ -42,15 +44,27 @@ object ChenInputEventDispatcher {
                 appClassLoader,
                 arrayOf(inputEventListenerCls)
             ) { _, _, args ->
-                notifyListeners(args?.get(0) as InputEvent)
+                val ev = args?.get(0) as InputEvent
+                notifyListeners(ev)
             }
 
-            mInputEventReceiver = inputEventReceiverCls.declaredConstructors[0].newInstance(
-                inputChannel,
-                looper,
-                choreographer,
-                chenListener
-            )
+
+            mInputEventReceiver = if (isAboveV) {
+                inputEventReceiverCls.declaredConstructors[0].newInstance(
+                    "ChenHomeHandleTouchHandler",
+                    inputChannel,
+                    looper,
+                    choreographer,
+                    chenListener
+                )
+            } else {
+                inputEventReceiverCls.declaredConstructors[0].newInstance(
+                    inputChannel,
+                    looper,
+                    choreographer,
+                    chenListener
+                )
+            }
             Log.i(
                 "Art_Chen",
                 "[ChenInputEventDispatcher] init done on Android U!"

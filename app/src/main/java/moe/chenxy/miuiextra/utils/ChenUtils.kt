@@ -9,6 +9,7 @@ import java.io.DataOutputStream
 class ChenUtils {
     companion object {
         enum class AndroidVersion(val releaseCode: Int) {
+            V(15),
             U(14),
             T(13),
             S(12),
