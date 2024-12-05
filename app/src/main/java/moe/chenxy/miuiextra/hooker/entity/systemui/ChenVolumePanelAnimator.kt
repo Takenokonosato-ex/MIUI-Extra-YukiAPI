@@ -9,6 +9,7 @@ import com.highcapable.yukihookapi.hook.type.java.IntType
 import de.robv.android.xposed.XSharedPreferences
 import de.robv.android.xposed.XposedHelpers
 import moe.chenxy.miuiextra.BuildConfig
+import moe.chenxy.miuiextra.utils.ChenUtils
 import kotlin.math.absoluteValue
 
 
@@ -16,6 +17,8 @@ object ChenVolumePanelAnimator : YukiBaseHooker() {
     private const val SHIFT_ONLY = 0
     private const val STRETCH = 1
     private const val SCALE = 2
+
+    private val isAboveV = ChenUtils.isAboveAndroidVersion(ChenUtils.Companion.AndroidVersion.V)
 
     private var MAX_SHIFT_VAL = 25f
 
@@ -65,7 +68,7 @@ object ChenVolumePanelAnimator : YukiBaseHooker() {
         var lastIsBottomHaptic = false
         var lastIsContinueHaptic = false
         var isDismissed = true
-        "com.android.systemui.miui.volume.MiuiVolumeDialogImpl$1".toClass().method {
+        "com.android.systemui.miui.volume.${if (isAboveV) "VolumePanelViewController" else "MiuiVolumeDialogImpl"}$1".toClass().method {
             name = "onPerformHapticFeedback"
             param(IntType)
         }.hook {
@@ -73,7 +76,8 @@ object ChenVolumePanelAnimator : YukiBaseHooker() {
                 val i = this.args[0] as Int
                 val thiz = XposedHelpers.getObjectField(this.instance, "this\$0")
                 mDialogView =
-                    XposedHelpers.getObjectField(thiz, "mDialogView") as LinearLayout
+                    if (isAboveV) XposedHelpers.getObjectField(thiz, "mVolumeView") as LinearLayout
+                    else XposedHelpers.getObjectField(thiz, "mDialogView") as LinearLayout
                 val isContinueHaptic: Boolean = i and 1 > 0
                 val isTopHaptic: Boolean = i and 2 > 0
                 val isBottomHaptic: Boolean = i and 4 > 0
@@ -93,11 +97,23 @@ object ChenVolumePanelAnimator : YukiBaseHooker() {
             }
         }
 
-        "com.android.systemui.miui.volume.MiuiVolumeDialogImpl$6".toClass().method {
-            name = "onDismiss"
-        }.hook {
-            after {
-                isDismissed = true
+        if (isAboveV) {
+            "com.android.systemui.volume.VolumeDialogMotion".toClass().method {
+                name = "setDismissing"
+            }.hook {
+                after {
+                    if (!isDismissed && this.args[0] as Boolean) {
+                        isDismissed = true
+                    }
+                }
+            }
+        } else {
+            "com.android.systemui.miui.volume.MiuiVolumeDialogImpl$6".toClass().method {
+                name = "onDismiss"
+            }.hook {
+                after {
+                    isDismissed = true
+                }
             }
         }
 
