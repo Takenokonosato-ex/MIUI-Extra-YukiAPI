@@ -426,31 +426,30 @@ object HomeHandleAnimatorHooker : YukiBaseHooker() {
 //                            "Art_Chen",
 //                            "motionEvent actionMasked: ${motionEvent.actionMasked} x: ${motionEvent.x}, y: ${motionEvent.y}"
 //                        )
-                if (mHandler != null) {
-                    mHandler!!.post {
-                        if (motionEvent.actionMasked == MotionEvent.ACTION_DOWN
-                            && (mHomeHandle.alpha == 0f || mHomeHandle.scaleX <= 0f || mHomeHandle.scaleY <= 0f
-                                    || (mHomeHandle.windowVisibility != View.VISIBLE || isHidden))) {
-                            // drop if home handle is transparent.
-                            return@post
-                        }
+                mHandler?.post {
+                    if (motionEvent.actionMasked == MotionEvent.ACTION_DOWN
+                        && (mHomeHandle.alpha == 0f || mHomeHandle.scaleX <= 0f || mHomeHandle.scaleY <= 0f
+                                || (mHomeHandle.windowVisibility != View.VISIBLE || isHidden))) {
+                        // drop if home handle is transparent.
+                        return@post
+                    }
 
-                        if (disableHomeHandleMovement && motionEvent.actionMasked == MotionEvent.ACTION_MOVE) {
-                            // drop if disable home handle movement
-                            return@post
-                        }
+                    if (disableHomeHandleMovement && motionEvent.actionMasked == MotionEvent.ACTION_MOVE) {
+                        // drop if disable home handle movement
+                        return@post
+                    }
 
-                        screenRealHeight = getScreenRealHeight(mContext!!)
-                        screenHeight = getScreenHeight(mContext!!)
-                        // onInputEvent will be done if mHandler post, so the original motionEvent will be recycled,
-                        // so that we use the copy of event and recycle by ourself
-                        val isNavigationBarArea: Boolean =
-                            if (!isAboveU && screenRealHeight - screenHeight > 1) {
-                                motionEvent.y > screenHeight
-                            } else {
-                                // on U, look like the real height - orig bar height is better
+                    screenRealHeight = getScreenRealHeight(mContext!!)
+                    screenHeight = getScreenHeight(mContext!!)
+                    // onInputEvent will be done if mHandler post, so the original motionEvent will be recycled,
+                    // so that we use the copy of event and recycle by ourself
+                    val isNavigationBarArea: Boolean =
+                        if (!isAboveU && screenRealHeight - screenHeight > 1) {
+                            motionEvent.y > screenHeight
+                        } else {
+                            // on U, look like the real height - orig bar height is better
 
-                                // Remove useless logs
+                            // Remove useless logs
 //                                if (!isAboveU) {
 //                                    Log.v(
 //                                        "Art_Chen",
@@ -459,61 +458,62 @@ object HomeHandleAnimatorHooker : YukiBaseHooker() {
 //                                        }"
 //                                    )
 //                                }
-                                motionEvent.y > screenRealHeight - origBarHeight
-                            }
+                            motionEvent.y > screenRealHeight - origBarHeight
+                        }
 
-                        if (isNavigationBarArea) {
-                            if (motionEvent.actionMasked == MotionEvent.ACTION_DOWN) {
+                    if (isNavigationBarArea) {
+                        if (motionEvent.actionMasked == MotionEvent.ACTION_DOWN) {
 //                                Log.v(
 //                                    "Art_Chen",
 //                                    "current touch is in navigation area! motionTriggered!"
 //                                )
-                                if (!mIsInHome || mHomeHandle.alpha != 0f) {
-                                    // TODO: Move to 'animateTo'
-                                    opacityHomeHandle(EventType.PRESSED)
-                                    animateHomeHandleXYToNormal(EventType.PRESSED)
-                                }
-
-                                baseX = motionEvent.x
-                                baseY = motionEvent.y
-                                motionTriggered = true
+                            if (!mIsInHome || mHomeHandle.alpha != 0f) {
+                                // TODO: Move to 'animateTo'
+                                opacityHomeHandle(EventType.PRESSED)
+                                animateHomeHandleXYToNormal(EventType.PRESSED)
                             }
-                            if (motionEvent.actionMasked == MotionEvent.ACTION_MOVE && motionTriggered && (!isBoostMode && orientation == 0)) {
-                                val offsetNeeded =
-                                    -(baseY - motionEvent.y) * 0.15f + yOffset
-                                if (abs(offsetNeeded) < barHeight / 2 - 6) {
-                                    mHomeHandle.translationY = offsetNeeded
-                                }
+
+                            baseX = motionEvent.x
+                            baseY = motionEvent.y
+                            motionTriggered = true
+                        }
+                        if (motionEvent.actionMasked == MotionEvent.ACTION_MOVE && motionTriggered && (!isBoostMode && orientation == 0)) {
+                            val offsetNeeded =
+                                -(baseY - motionEvent.y) * 0.15f + yOffset
+                            if (abs(offsetNeeded) < barHeight / 2 - 6) {
+                                mHomeHandle.translationY = offsetNeeded
                             }
                         }
-
-                        if (motionEvent.actionMasked == MotionEvent.ACTION_MOVE && motionTriggered) {
-                            cancelHomeHandleXYAnim()
-                            if (isBoostMode && orientation == 0) {
-                                val offsetNeeded =
-                                    -(baseY - motionEvent.y) * 0.2f + yOffset
-                                if (abs(offsetNeeded) < barHeight / 2 + 6) {
-                                    mHomeHandle.translationY = offsetNeeded
-                                }
-                            } else if (orientation != 0) {
-                                // Let the Landscape has a little move effect instead of zero y offset.
-                                val offsetNeeded =
-                                    -(baseY - motionEvent.y) * 0.02f + yOffset
-                                if (abs(offsetNeeded) < barHeight / 2 + 6) {
-                                    mHomeHandle.translationY = offsetNeeded
-                                }
-                            }
-                            mHomeHandle.translationX = -(baseX - motionEvent.x) * 0.2f
-                        }
-
-                        if (motionEvent.actionMasked == MotionEvent.ACTION_UP && motionTriggered) {
-                            val eventType = if (!mIsInHome) EventType.NORMAL else EventType.HOME
-                            opacityHomeHandle(eventType)
-                            animateHomeHandleXYToNormal(eventType)
-                            motionTriggered = false
-                        }
-                        motionEvent.recycle()
                     }
+
+                    if (motionEvent.actionMasked == MotionEvent.ACTION_MOVE && motionTriggered) {
+                        cancelHomeHandleXYAnim()
+                        if (isBoostMode && orientation == 0) {
+                            val offsetNeeded =
+                                -(baseY - motionEvent.y) * 0.2f + yOffset
+                            if (abs(offsetNeeded) < barHeight / 2 + 6) {
+                                mHomeHandle.translationY = offsetNeeded
+                            }
+                        } else if (orientation != 0) {
+                            // Let the Landscape has a little move effect instead of zero y offset.
+                            val offsetNeeded =
+                                -(baseY - motionEvent.y) * 0.02f + yOffset
+                            if (abs(offsetNeeded) < barHeight / 2 + 6) {
+                                mHomeHandle.translationY = offsetNeeded
+                            }
+                        }
+                        mHomeHandle.translationX = -(baseX - motionEvent.x) * 0.2f
+                    }
+
+                    if (motionEvent.actionMasked == MotionEvent.ACTION_UP && motionTriggered) {
+                        val eventType = if (!mIsInHome) EventType.NORMAL else EventType.HOME
+                        opacityHomeHandle(eventType)
+                        animateHomeHandleXYToNormal(eventType)
+                        motionTriggered = false
+                    }
+                    motionEvent.recycle()
+                } ?: {
+                    motionEvent.recycle()
                 }
             }
         }
@@ -676,7 +676,7 @@ object HomeHandleAnimatorHooker : YukiBaseHooker() {
                         ) && orientationFor == 0
                     ) {
                         inset = if (isAboveU) {
-                            Insets.of(inset.left, 0, inset.right, 1)
+                            Insets.of(inset.left, 0, inset.right, 0)
                         } else {
                             Insets.of(inset.left, lp.height, inset.right, 0)
                         }
@@ -783,6 +783,29 @@ object HomeHandleAnimatorHooker : YukiBaseHooker() {
                 } else {
                     XposedHelpers.setIntField(this.instance, "mDarkColor", mDarkColor)
                     XposedHelpers.setIntField(this.instance, "mLightColor", mLightColor)
+                }
+            }
+        }
+
+        if (mainPrefs.getBoolean("home_handle_wa_no_space_not_hide", false)) {
+            // Workaround immersive mode can not hide the handle
+            "com.android.systemui.navigationbar.NavigationBar".toClass().method {
+                name("setWindowState")
+                param(IntType, IntType, IntType)
+            }.hook {
+                after {
+                    isHidden = XposedHelpers.getBooleanField(
+                        this.instance,
+                        "mShowOrientedHandleForImmersiveMode"
+                    )
+                    if (lastIsHidden == isHidden) return@after
+
+                    if (isHidden) {
+                        opacityTo(0f, 300)
+                    } else {
+                        opacityHomeHandle(EventType.NORMAL)
+                    }
+                    lastIsHidden = isHidden
                 }
             }
         }
